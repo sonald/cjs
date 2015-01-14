@@ -1,0 +1,10 @@
+*~
+.*~
+*.moc
+*.moc.cc
+
+*.swp
+*.swo
+
+build
+*.pyc

@@ -1,0 +1,26 @@
+NOTE: not all productions give semantically correct structure, so of 
+errors should be judged during semantic analysis
+
+grammar:
+    prog := statementlist
+   
+    statementlist := exprstatement
+       | statementlist exprstatement
+   
+    exprstatement := expr ';'
+   
+    expr := callexpr
+   
+    callexpr := memberexpr args
+   
+    memberexpr := primary
+        | memberexpr '.' primary 
+   
+    args := '(' ')' 
+        | '(' arglist ')'
+   
+    arglist := primary 
+        | primary ',' arglist
+   
+    primary := literal
+        | ident

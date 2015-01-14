@@ -1,0 +1,47 @@
+[
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/ast.cc.o -c /Users/sonald/Dropbox/stage/cjs/ast.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/ast.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/debug.cc.o -c /Users/sonald/Dropbox/stage/cjs/debug.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/debug.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/driver.cc.o -c /Users/sonald/Dropbox/stage/cjs/driver.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/driver.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/env.cc.o -c /Users/sonald/Dropbox/stage/cjs/env.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/env.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/lexer.cc.o -c /Users/sonald/Dropbox/stage/cjs/lexer.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/lexer.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/llvm-emitter.cc.o -c /Users/sonald/Dropbox/stage/cjs/llvm-emitter.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/llvm-emitter.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/nasm-emitter.cc.o -c /Users/sonald/Dropbox/stage/cjs/nasm-emitter.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/nasm-emitter.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/parser.cc.o -c /Users/sonald/Dropbox/stage/cjs/parser.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/parser.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/semantic.cc.o -c /Users/sonald/Dropbox/stage/cjs/semantic.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/semantic.cc"
+}
+]
