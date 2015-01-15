@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(cjs)
 
-set(codemate_VERSION_MAJOR 0)
-set(codemate_VERSION_MINOR 1)
+set(cjs_VERSION_MAJOR 0)
+set(cjs_VERSION_MINOR 1)
 
 #find_package(PkgConfig REQUIRED)
-#pkg_check_modules(QT5_WIDGETS REQUIRED Qt5Widgets)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

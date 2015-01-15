@@ -44,18 +44,15 @@ namespace cjs
 
         for (const auto& x: global.symbols()) {
             if (x.second->type == SymbolType::External) {
-                _os << "\t.globl _" << x.second->name;
+                _os << "    extern _" << x.second->name;
             }
         }
 
         _os << R"(
-    .text
-    .globl  _main
-    .align  4, 0x90
+    section .text
+    global  _main
 _main: 
-    pushq   %rbp
-    movq    %rsp, %rbp
-    subq    $32, %rsp
+    enter 0, 16
 )";
 
     }
@@ -63,10 +60,9 @@ _main:
     void NasmEmitterVisitor::post()
     {
         _os << R"(
-    movl $0, %eax
-    addq    $32, %rsp
-    popq    %rbp
-    retq
+    mov eax, 0
+    leave
+    ret
 )";
     }
 
@@ -96,7 +92,7 @@ _main:
         auto func = obj->object();
         ast::Identifier* id = dynamic_cast<ast::Identifier*>(func.get());
         auto psym = Environment::current()->get(id->token().sval);
-        _os << "callq _" << psym->name << endl;
+        _os << "call _" << psym->name << endl;
     }
 
     void NasmEmitterVisitor::visit(ast::MemberExpression* node) 
@@ -112,7 +108,7 @@ _main:
         auto& l = node->args();
         //x86-64 calling convention
         static string reqs[] = {
-            "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"
+            "rdi", "rsi", "rdx", "rcx", "r8", "r9"
         };
         int nr_arg = 0;
         for_each(l.begin(), l.end(), [&](const ast::AstPtr& ptr) {
@@ -123,8 +119,8 @@ _main:
 
             auto* id = dynamic_cast<ast::StringLiteral*>(ptr.get());
             string label = id->symbol()->name;
-            _os << "leaq " << label << "(%rip), %rax" << endl;
-            _os << "movq %rax, " << reqs[nr_arg] << endl;
+            _os << "mov rax, " << label << endl;
+            _os << "mov " << reqs[nr_arg] << ", rax" << endl;
             nr_arg++;
         });
     }
@@ -136,11 +132,11 @@ _main:
     void NasmEmitterVisitor::visit(ast::StringLiteral* node) 
     {
         static int next = 0;
-        string label = ".LC" + to_string(next++);
-        _os << ".data" << endl;
+        string label = "LC" + to_string(next++);
+        _os << "section .data" << endl;
         _os << label << ":\n";
-        _os << "    .asciz \"" << node->token().sval << "\"\n";
-        _os << ".text" << endl;
+        _os << "    db \"" << node->token().sval << "\", 0\n";
+        _os << "section .text" << endl;
 
         debug("define local label (%) for (%)", label, node->token().sval);
 

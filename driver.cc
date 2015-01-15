@@ -11,7 +11,7 @@ using namespace cjs;
 
 void compile(string src)
 {
-    string cmd = "yasm -f macho64 -p gas " + src;
+    string cmd = "nasm -f macho64 " + src;
     system(cmd.c_str());
 }
 
@@ -34,10 +34,13 @@ int main(int argc, char *argv[])
     TypeCheckVisitor tc;
     ast->visit(&tc);
 
-    // emit asm
-    ofstream os{"test.s"};
-    NasmEmitterVisitor emitter {os};
-    ast->visit(&emitter);
+    // emit nasm
+    {
+        // post runs on destructor
+        ofstream os{"test.s"};
+        NasmEmitterVisitor emitter {os};
+        ast->visit(&emitter);
+    }
 
     compile("test.s");
     link("test.o");
