@@ -37,6 +37,7 @@ namespace cjs
     struct Symbol {
         SymbolType type;
         string name;
+        //FIXME: ugly
         void* val; // should be cast according to type
 
         Symbol(SymbolType st, string name, void* v)

@@ -30,14 +30,14 @@ namespace cjs
             void pre();
             void post();
 
-            virtual void visit(ast::Program* node) override;
-            virtual void visit(ast::ExpressionStatement* node) override;
-            virtual void visit(ast::Expression* node) override;
-            virtual void visit(ast::CallExpression* node) override;
-            virtual void visit(ast::MemberExpression* node) override;
-            virtual void visit(ast::CallArgs* node) override;
-            virtual void visit(ast::Identifier* node) override;
-            virtual void visit(ast::StringLiteral* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::Program* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::ExpressionStatement* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::Expression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::CallExpression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::MemberExpression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::CallArgs* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::Identifier* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::StringLiteral* node) override;
 
         private:
             ofstream& _os;

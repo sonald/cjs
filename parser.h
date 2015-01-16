@@ -33,27 +33,32 @@ namespace cjs
     class AstVisitor
     {
         public:
-            virtual void visit(ast::Program* node) = 0;
-            virtual void visit(ast::ExpressionStatement* node) = 0;
-            virtual void visit(ast::Expression* node) = 0;
-            virtual void visit(ast::CallExpression* node) = 0;
-            virtual void visit(ast::MemberExpression* node) = 0;
-            virtual void visit(ast::CallArgs* node) = 0;
-            virtual void visit(ast::Identifier* node) = 0;
-            virtual void visit(ast::StringLiteral* node) = 0;
+            enum class Phase {
+                Capture,
+                Bubble
+            };
+
+            virtual void visit(Phase phase, ast::Program* node) = 0;
+            virtual void visit(Phase phase, ast::ExpressionStatement* node) = 0;
+            virtual void visit(Phase phase, ast::Expression* node) = 0;
+            virtual void visit(Phase phase, ast::CallExpression* node) = 0;
+            virtual void visit(Phase phase, ast::MemberExpression* node) = 0;
+            virtual void visit(Phase phase, ast::CallArgs* node) = 0;
+            virtual void visit(Phase phase, ast::Identifier* node) = 0;
+            virtual void visit(Phase phase, ast::StringLiteral* node) = 0;
     };
 
     class ReprVisitor: public AstVisitor
     {
         public:
-            virtual void visit(ast::Program* node) override;
-            virtual void visit(ast::ExpressionStatement* node) override;
-            virtual void visit(ast::Expression* node) override;
-            virtual void visit(ast::CallExpression* node) override;
-            virtual void visit(ast::MemberExpression* node) override;
-            virtual void visit(ast::CallArgs* node) override;
-            virtual void visit(ast::Identifier* node) override;
-            virtual void visit(ast::StringLiteral* node) override;
+            virtual void visit(Phase phase, ast::Program* node) override;
+            virtual void visit(Phase phase, ast::ExpressionStatement* node) override;
+            virtual void visit(Phase phase, ast::Expression* node) override;
+            virtual void visit(Phase phase, ast::CallExpression* node) override;
+            virtual void visit(Phase phase, ast::MemberExpression* node) override;
+            virtual void visit(Phase phase, ast::CallArgs* node) override;
+            virtual void visit(Phase phase, ast::Identifier* node) override;
+            virtual void visit(Phase phase, ast::StringLiteral* node) override;
             string repr() const { return _repr; }
 
         private:

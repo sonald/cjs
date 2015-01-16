@@ -31,6 +31,8 @@ namespace cjs
                 TypeChecker,
                 Env,
                 Emitter,
+                Stage,
+                Backend,
             };
 
             Logger();

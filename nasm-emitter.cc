@@ -29,12 +29,10 @@ namespace cjs
     NasmEmitterVisitor::NasmEmitterVisitor(ofstream& os)
         :AstVisitor(), _os(os)
     {
-        pre();
     }
 
     NasmEmitterVisitor::~NasmEmitterVisitor()
     {
-        post();
     }
 
     void NasmEmitterVisitor::pre()
@@ -64,47 +62,56 @@ _main:
     leave
     ret
 )";
-    }
-
-    void NasmEmitterVisitor::visit(ast::Program* node) 
-    {
-        for(auto& ptr: node->statements()) {
-            ptr->visit(this);
+        Environment& top = *Environment::top();
+        _os << "section .data" << endl;
+        for (auto& ptr: top.symbols()) {
+            auto sym = ptr.second.get();
+            if (sym->type == SymbolType::StringLabel) {
+                string label = sym->name;
+                _os << label << ":\n";
+                _os << "    db \"" << static_cast<Token*>(sym->val)->sval << "\", 0\n";
+            }
         }
     }
 
-    void NasmEmitterVisitor::visit(ast::ExpressionStatement* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::Program* node) 
     {
-        node->expression()->visit(this);
+        if (phase == AstVisitor::Phase::Capture) {
+            pre();
+        } else {
+            post();
+            _os.flush();
+        }
     }
 
-    void NasmEmitterVisitor::visit(ast::Expression* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::ExpressionStatement* node) 
     {
     }
 
-    void NasmEmitterVisitor::visit(ast::CallExpression* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::Expression* node) 
+    {
+    }
+
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::CallExpression* node) 
     {
         //can only handle one level of function call right now
-        node->args()->visit(this);
-        //node->callee()->visit(this);
-    
-        auto* obj = dynamic_cast<ast::MemberExpression*>(node->callee().get());
-        auto func = obj->object();
-        ast::Identifier* id = dynamic_cast<ast::Identifier*>(func.get());
-        auto psym = Environment::current()->get(id->token().sval);
-        _os << "call _" << psym->name << endl;
+        if (phase == AstVisitor::Phase::Bubble) {
+            auto* obj = dynamic_cast<ast::MemberExpression*>(node->callee().get());
+            auto func = obj->object();
+            ast::Identifier* id = dynamic_cast<ast::Identifier*>(func.get());
+            auto psym = Environment::current()->get(id->token().sval);
+            _os << "call _" << psym->name << endl;
+        }
     }
 
-    void NasmEmitterVisitor::visit(ast::MemberExpression* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::MemberExpression* node) 
     {
-        //node->object()->visit(this);
-        //if (node->property()) {
-            //node->property()->visit(this);
-        //}
     }
 
-    void NasmEmitterVisitor::visit(ast::CallArgs* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::CallArgs* node) 
     {
+        if (phase == AstVisitor::Phase::Capture) return;
+
         auto& l = node->args();
         //x86-64 calling convention
         static string reqs[] = {
@@ -115,8 +122,6 @@ _main:
             if (nr_arg > 5) {
                 // push into stack
             }
-            ptr->visit(this);
-
             auto* id = dynamic_cast<ast::StringLiteral*>(ptr.get());
             string label = id->symbol()->name;
             _os << "mov rax, " << label << endl;
@@ -125,24 +130,13 @@ _main:
         });
     }
 
-    void NasmEmitterVisitor::visit(ast::Identifier* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::Identifier* node) 
     {
     }
 
-    void NasmEmitterVisitor::visit(ast::StringLiteral* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::StringLiteral* node) 
     {
-        static int next = 0;
-        string label = "LC" + to_string(next++);
-        _os << "section .data" << endl;
-        _os << label << ":\n";
-        _os << "    db \"" << node->token().sval << "\", 0\n";
-        _os << "section .text" << endl;
 
-        debug("define local label (%) for (%)", label, node->token().sval);
-
-        Environment& cur = *Environment::current();
-        cur.add(label, SymbolType::StringLabel, nullptr);
-        node->annotate(label);
     }
 
 };

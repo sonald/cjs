@@ -14,21 +14,31 @@
 // 
 // Copyright (C) Sian Cao <yinshuiboy@gmail.com>, 2015
 
-#include "debug.h"
+#ifndef _CJS_STAGE_H
+#define _CJS_STAGE_H 
 
-namespace cjs
+#include <memory>
+#include <vector>
+
+#include "ast.h"
+
+namespace cjs 
 {
-    Logger log;
-    Logger::Logger()
+    using namespace std;
+    class Backend;
+
+    class Stage 
     {
-        _domains = {
-            {Tokenizer, "Tokenizer"},
-            {Parser, "Parser"},
-            {TypeChecker, "TypeChecker"},
-            {Emitter, "Emitter"},
-            {Env, "Env"},
-            {Stage, "Stage"},
-            {Backend, "Backend"},
-        };
-    }
+        public:
+            void setBackend(Backend* be);
+            void start();
+            void addCompilationUnit(const string& src);
+
+        private:
+            unique_ptr<Backend> _be;
+            vector<ast::AstPtr> _ir;
+    };
+
 };
+
+#endif

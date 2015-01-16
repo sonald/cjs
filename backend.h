@@ -14,21 +14,31 @@
 // 
 // Copyright (C) Sian Cao <yinshuiboy@gmail.com>, 2015
 
-#include "debug.h"
+#ifndef _CJS_BACKEND_H
+#define _CJS_BACKEND_H 
+
+#include <string>
+#include <vector>
 
 namespace cjs
 {
-    Logger log;
-    Logger::Logger()
+    using namespace std;
+    class Backend 
     {
-        _domains = {
-            {Tokenizer, "Tokenizer"},
-            {Parser, "Parser"},
-            {TypeChecker, "TypeChecker"},
-            {Emitter, "Emitter"},
-            {Env, "Env"},
-            {Stage, "Stage"},
-            {Backend, "Backend"},
-        };
-    }
+        public:
+            virtual string compile(string src) = 0;
+            virtual bool link() = 0;
+    };
+
+    class MachBackend: public Backend 
+    {
+        public:
+            virtual string compile(string src);
+            virtual bool link();
+
+        private:
+            vector<string> _objs;
+    };
 };
+
+#endif

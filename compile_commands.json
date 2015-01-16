@@ -6,6 +6,11 @@
 },
 {
   "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/backend.cc.o -c /Users/sonald/Dropbox/stage/cjs/backend.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/backend.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
   "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/debug.cc.o -c /Users/sonald/Dropbox/stage/cjs/debug.cc",
   "file": "/Users/sonald/Dropbox/stage/cjs/debug.cc"
 },
@@ -43,5 +48,10 @@
   "directory": "/Users/sonald/Dropbox/stage/cjs/build",
   "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/semantic.cc.o -c /Users/sonald/Dropbox/stage/cjs/semantic.cc",
   "file": "/Users/sonald/Dropbox/stage/cjs/semantic.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/stage.cc.o -c /Users/sonald/Dropbox/stage/cjs/stage.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/stage.cc"
 }
 ]

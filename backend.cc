@@ -14,21 +14,32 @@
 // 
 // Copyright (C) Sian Cao <yinshuiboy@gmail.com>, 2015
 
+#include "backend.h"
 #include "debug.h"
 
+#include <cstdlib>
 namespace cjs
 {
-    Logger log;
-    Logger::Logger()
+    DEF_DEBUG_FOR(Logger::Backend);
+    string MachBackend::compile(string src)
     {
-        _domains = {
-            {Tokenizer, "Tokenizer"},
-            {Parser, "Parser"},
-            {TypeChecker, "TypeChecker"},
-            {Emitter, "Emitter"},
-            {Env, "Env"},
-            {Stage, "Stage"},
-            {Backend, "Backend"},
-        };
+        string cmd = "nasm -f macho64 " + src;
+        debug("%", cmd);
+        system(cmd.c_str());
+
+        auto i = src.find_last_of('.');
+        src.replace(src.begin()+i, src.end(), ".o");
+        _objs.push_back(src);
+        return src;
+    }
+
+    bool MachBackend::link()
+    {
+        string objs;
+        for (auto& s: _objs) objs += s + " ";
+        string cmd = "ld -demangle -dynamic -arch x86_64 -macosx_version_min 10.10.0 -o a.out " + objs + " -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/6.0/lib/darwin/libclang_rt.osx.a";
+        debug("%", cmd);
+        system(cmd.c_str());
+        return true;
     }
 };

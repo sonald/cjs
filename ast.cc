@@ -36,14 +36,65 @@ namespace ast
     void cls::visit(AstVisitor* visitor) \
     { visitor->visit(this); }
 
-MAKE_VISIT(Program)
-MAKE_VISIT(ExpressionStatement)
-MAKE_VISIT(Expression)
-MAKE_VISIT(CallExpression)
-MAKE_VISIT(Identifier)
-MAKE_VISIT(MemberExpression)
-MAKE_VISIT(CallArgs)
-MAKE_VISIT(StringLiteral)
+    void Program::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        for(auto& ptr: statements()) {
+            ptr->visit(visitor);
+        }
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void ExpressionStatement::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        expression()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void Expression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+    }
+
+    void CallExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        callee()->visit(visitor);
+        args()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void MemberExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        object()->visit(visitor);
+        if (property()) {
+            property()->visit(visitor);
+        }
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void CallArgs::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        auto& l = args();
+        for_each(l.begin(), l.end(), [&](const ast::AstPtr& ptr) {
+            ptr->visit(visitor);
+        });
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    //leaf node, Capture and Bubble is merged into one Bubble
+    void Identifier::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void StringLiteral::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
 
 #undef MAKE_VISIT
 

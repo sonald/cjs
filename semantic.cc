@@ -15,30 +15,34 @@
 // Copyright (C) Sian Cao <yinshuiboy@gmail.com>, 2015
 
 #include "semantic.h"
+#include "debug.h"
 
 #include <cassert>
 
 namespace cjs
 {
-    void TypeCheckVisitor::visit(ast::Program* node) 
+    DEF_DEBUG_FOR(Logger::TypeChecker)
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::Program* node) 
     {
-        Environment& global = *Environment::top();
-        global.add("puts", SymbolType::External, nullptr);
+        if (phase == AstVisitor::Phase::Capture) {
+            Environment& global = *Environment::top();
+            global.add("puts", SymbolType::External, nullptr);
+        }
     }
 
-    void TypeCheckVisitor::visit(ast::ExpressionStatement* node) 
-    {
-    }
-
-    void TypeCheckVisitor::visit(ast::Expression* node) 
-    {
-    }
-
-    void TypeCheckVisitor::visit(ast::CallExpression* node) 
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::ExpressionStatement* node) 
     {
     }
 
-    void TypeCheckVisitor::visit(ast::MemberExpression* node) 
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::Expression* node) 
+    {
+    }
+
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::CallExpression* node) 
+    {
+    }
+
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::MemberExpression* node) 
     {
         auto func = node->object();
         assert(func->type() == ast::AstType::Identifier);
@@ -51,16 +55,24 @@ namespace cjs
         }
     }
 
-    void TypeCheckVisitor::visit(ast::CallArgs* node) 
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::CallArgs* node) 
     {
     }
 
-    void TypeCheckVisitor::visit(ast::Identifier* node) 
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::Identifier* node) 
     {
     }
 
-    void TypeCheckVisitor::visit(ast::StringLiteral* node) 
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::StringLiteral* node) 
     {
+        static int next = 0;
+        string label = "LC" + to_string(next++);
+        debug("define local label (%) for (%)", label, node->token().sval);
+
+        // string literal should reside in top env now
+        Environment& top = *Environment::top();
+        top.add(label, SymbolType::StringLabel, new Token(node->token()));
+        node->annotate(label);
     }
 
 };

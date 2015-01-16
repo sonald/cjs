@@ -35,57 +35,49 @@ namespace cjs
         exit(-1);
     }
 
-    void ReprVisitor::visit(ast::Program* node)
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Program* node)
     {
-        for(auto& ptr: node->statements()) {
-            ptr->visit(this);
+    }
+
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::ExpressionStatement* node)
+    {
+        if (phase == AstVisitor::Phase::Bubble)
+            _repr += ";";
+    }
+
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Expression* node)
+    {
+    }
+
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::CallExpression* node)
+    {
+    }
+
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::MemberExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Bubble) {
+            if (node->property()) {
+                _repr += ".";
+            }
         }
     }
 
-    void ReprVisitor::visit(ast::ExpressionStatement* node)
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::CallArgs* node)
     {
-        node->expression()->visit(this);
-        _repr += ";";
+        if (phase == AstVisitor::Phase::Capture)
+            _repr += "(";
+        else if (phase == AstVisitor::Phase::Bubble)
+            _repr += ")";
     }
 
-    void ReprVisitor::visit(ast::Expression* node)
+    //FIXME: I dont know where does this node come from 
+    //(e.g CallArgs or MemberExpression etc), may need parent node info
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Identifier* node)
     {
+        _repr += node->token().sval + ", ";
     }
 
-    void ReprVisitor::visit(ast::CallExpression* node)
-    {
-        node->callee()->visit(this);
-        node->args()->visit(this);
-    }
-
-    void ReprVisitor::visit(ast::MemberExpression* node)
-    {
-        node->object()->visit(this);
-        if (node->property()) {
-            _repr += ".";
-            node->property()->visit(this);
-        }
-    }
-
-    void ReprVisitor::visit(ast::CallArgs* node)
-    {
-        bool f = true;
-        auto& l = node->args();
-        _repr += "(";
-        for_each(l.begin(), l.end(), [&](const ast::AstPtr& ptr) {
-            if (!f) _repr += ".";
-            ptr->visit(this);
-            f = false;
-        });
-        _repr += ")";
-    }
-
-    void ReprVisitor::visit(ast::Identifier* node)
-    {
-        _repr += node->token().sval;
-    }
-
-    void ReprVisitor::visit(ast::StringLiteral* node)
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::StringLiteral* node)
     {
         _repr += "\'" + node->token().sval + "\'";
     }
