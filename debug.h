@@ -48,6 +48,7 @@ namespace cjs
             template <class... Args>
             void debug(Domain dom, const char* fmt, Args... args) 
             {
+                if (!on(dom)) return;
                 cerr << _domains[dom] << ": ";
                 debug(fmt, args...);
             }
@@ -70,8 +71,11 @@ namespace cjs
                 cerr << fmt << endl; 
             }
 
+            bool on(Domain dom);
+
         private:
             unordered_map<Domain, string> _domains;
+            unordered_map<string, bool> _enabled;
     };
 
 #define DEF_DEBUG_FOR(domain) \

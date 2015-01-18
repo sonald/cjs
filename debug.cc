@@ -18,6 +18,25 @@
 
 namespace cjs
 {
+    static string tolower(const string& s) 
+    {
+        string v(s);
+        std::transform(v.begin(), v.end(), v.begin(), [](char c) {
+            return std::tolower(c);
+        });
+        return v;
+    }
+
+    template <class T, class S>
+    static ostream& operator<<(ostream& os, const unordered_map<T,S>& m)
+    {
+        os << "{";
+        for (auto& x: m) {
+            os << "(" << x.first << " -> " << x.second << ") ";
+        }
+        return os << "}";
+    }
+
     Logger log;
     Logger::Logger()
     {
@@ -30,5 +49,31 @@ namespace cjs
             {Stage, "Stage"},
             {Backend, "Backend"},
         };
+
+        const char* v = std::getenv("CJS_DEBUG");
+        if (!v) v = "all";
+        string s(tolower(v));
+
+        if (s == "all") {
+            for (auto& x: _domains) {
+                _enabled[tolower(x.second)] = true;
+            }
+        } else {
+            auto i = s.begin();
+            while (i != s.end()) {
+                auto p = find(i, s.end(), ',');
+                auto dom = s.substr(i-s.begin(), p-i);
+                _enabled[dom] = true;
+                if (p == s.end()) break;
+                i = p+1;
+            }
+        }
+
+        cerr << "Domains enabled: " << _enabled << endl;
+    }
+
+    bool Logger::on(Domain dom)
+    {
+        return _enabled[tolower(_domains[dom])];
     }
 };
