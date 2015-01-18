@@ -34,7 +34,27 @@ namespace cjs
     {
     }
 
-    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::Expression* node) 
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::AssignExpression* node)
+    {
+    }
+
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::AdditiveExpression* node)
+    {
+    }
+
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::MultitiveExpression* node)
+    {
+    }
+
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::UnaryExpression* node)
+    {
+    }
+
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::PostfixExpression* node)
+    {
+    }
+
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::NewExpression* node)
     {
     }
 
@@ -63,16 +83,30 @@ namespace cjs
     {
     }
 
-    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::StringLiteral* node) 
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::Literal* node) 
     {
         static int next = 0;
-        string label = "LC" + to_string(next++);
-        debug("define local label (%) for (%)", label, node->token().sval);
 
-        // string literal should reside in top env now
-        Environment& top = *Environment::top();
-        top.add(label, SymbolType::StringLabel, new Token(node->token()));
-        node->annotate(label);
+        switch(node->type()) {
+            case ast::AstType::StringLiteral: 
+            {
+                string label = "LC" + to_string(next++);
+                debug("define local label (%) for (%)", label, node->token().sval);
+
+                // string literal should reside in top env now
+                Environment& top = *Environment::top();
+                top.add(label, SymbolType::StringLabel, new Token(node->token()));
+                node->annotate(label);
+                break;
+            }
+
+            case ast::AstType::BooleanLiteral:
+            case ast::AstType::NumericLiteral:
+            case ast::AstType::NullLiteral:
+            case ast::AstType::RegularExpressionLiteral:
+
+            default: break;
+        }
     }
 
 };

@@ -27,12 +27,17 @@ namespace cjs
         public:
             virtual void visit(AstVisitor::Phase phase, ast::Program* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::ExpressionStatement* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::Expression* node) override;
+            virtual void visit(Phase phase, ast::AssignExpression* node) override;
+            virtual void visit(Phase phase, ast::AdditiveExpression* node) override;
+            virtual void visit(Phase phase, ast::MultitiveExpression* node) override;
+            virtual void visit(Phase phase, ast::UnaryExpression* node) override;
+            virtual void visit(Phase phase, ast::PostfixExpression* node) override;
+            virtual void visit(Phase phase, ast::NewExpression* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::CallExpression* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::MemberExpression* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::CallArgs* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::Identifier* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::StringLiteral* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::Literal* node) override;
     };
         
 };

@@ -37,7 +37,7 @@ namespace cjs
             virtual void visit(AstVisitor::Phase phase, ast::MemberExpression* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::CallArgs* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::Identifier* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::StringLiteral* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::Literal* node) override;
 
         private:
             ofstream& _os;

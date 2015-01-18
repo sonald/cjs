@@ -21,26 +21,23 @@ namespace cjs
 {
 namespace ast
 {
-    SymbolPtr StringLiteral::symbol()
+    SymbolPtr Literal::symbol()
     {
         return _env->get(_symName);
     }
 
-    void StringLiteral::annotate(string sym)
+    void Literal::annotate(string sym)
     {
         _symName = sym;
         _env = Environment::current();
     }
-
-#define MAKE_VISIT(cls) \
-    void cls::visit(AstVisitor* visitor) \
-    { visitor->visit(this); }
 
     void Program::visit(AstVisitor* visitor)
     {
         visitor->visit(AstVisitor::Phase::Capture, this);
         for(auto& ptr: statements()) {
             ptr->visit(visitor);
+            visitor->visit(AstVisitor::Phase::Step, this);
         }
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }
@@ -57,10 +54,59 @@ namespace ast
         visitor->visit(AstVisitor::Phase::Capture, this);
     }
 
+    void AssignExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        lhs()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Step, this);
+        assignee()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void AdditiveExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        lhs()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Step, this);
+        rhs()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void MultitiveExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        lhs()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Step, this);
+        rhs()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void UnaryExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        unary()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void PostfixExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        post()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
+    void NewExpression::visit(AstVisitor* visitor)
+    {
+        visitor->visit(AstVisitor::Phase::Capture, this);
+        member()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Bubble, this);
+    }
+
     void CallExpression::visit(AstVisitor* visitor)
     {
         visitor->visit(AstVisitor::Phase::Capture, this);
         callee()->visit(visitor);
+        visitor->visit(AstVisitor::Phase::Step, this);
         args()->visit(visitor);
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }
@@ -70,6 +116,7 @@ namespace ast
         visitor->visit(AstVisitor::Phase::Capture, this);
         object()->visit(visitor);
         if (property()) {
+            visitor->visit(AstVisitor::Phase::Step, this);
             property()->visit(visitor);
         }
         visitor->visit(AstVisitor::Phase::Bubble, this);
@@ -81,6 +128,7 @@ namespace ast
         auto& l = args();
         for_each(l.begin(), l.end(), [&](const ast::AstPtr& ptr) {
             ptr->visit(visitor);
+            visitor->visit(AstVisitor::Phase::Step, this);
         });
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }
@@ -91,12 +139,10 @@ namespace ast
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }
 
-    void StringLiteral::visit(AstVisitor* visitor)
+    void Literal::visit(AstVisitor* visitor)
     {
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }
-
-#undef MAKE_VISIT
 
 };
 };

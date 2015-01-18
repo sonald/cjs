@@ -27,23 +27,75 @@ namespace cjs
 
     struct Token 
     {
-        enum class TokenType 
+        enum class TokenType: int
         {
-            Identifier = 256,
+            /* keywords */
+            FUNCTION,
+            VAR,
+            BREAK,   
+            DO,  
+            INSTANCEOF,  
+            TYPEOF,
+            CASE,    
+            ELSE,    
+            NEW, 
+            CATCH,   
+            FINALLY, 
+            RETURN,  
+            VOID,
+            CONTINUE,    
+            FOR, 
+            SWITCH,  
+            WHILE,
+            DEBUGGER,    
+            THIS,    
+            WITH,
+            DEFAULT, 
+            IF,  
+            THROW,   
+            DELETE,  
+            IN,  
+            TRY,
+
+            /* puncts */
+            Identifier,
             Semicolon,
             Comma,
             Dot,
+            LBrace,
+            RBrace,
             LParen,
             RParen,
+
+            ASSIGNMENT,
+
+            PLUS,
+            MINUS,
+
+            MUL,
+            DIV,
+
+            UNARY_PLUS,
+            UNARY_MINUS,
+
+            INCREMENT, // ++
+            DECREMENT, // ++
+
             SingleQuote,
             StringLiteral,
+            NullLiteral,
+            BooleanLiteral,
+            NumericLiteral,
+            RegexLiteral,
             EOS
         };
 
         TokenType type;
         string sval; // for string literal and ident
+        friend ostream& operator<<(ostream& os, const Token& tk);
     };
 
+    
     class Tokenizer 
     {
         public:
@@ -63,7 +115,20 @@ namespace cjs
             Token _next;
             stack<Token> _ungets; // unget buffer
 
-            void error(const string& msg);
+            enum class State {
+                InStart,
+                InString,
+                InRegExp,
+            };
+
+            State _state {State::InStart};
+
+            void skipWhite();
+            void parseRegExp();
+            void parseString();
+            void parseNumeric();
+            void parseComment();
+            void parseIdent();
     };
 };
 

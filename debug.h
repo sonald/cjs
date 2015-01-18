@@ -38,6 +38,14 @@ namespace cjs
             Logger();
 
             template <class... Args>
+            void error(Domain dom, const char* fmt, Args... args) 
+            {
+                cerr << _domains[dom] << ": ";
+                debug(fmt, args...);
+                exit(-1);
+            }
+
+            template <class... Args>
             void debug(Domain dom, const char* fmt, Args... args) 
             {
                 cerr << _domains[dom] << ": ";
@@ -66,11 +74,15 @@ namespace cjs
             unordered_map<Domain, string> _domains;
     };
 
-
 #define DEF_DEBUG_FOR(domain) \
     template <class... Args> \
     static void debug(const char* fmt, Args... args)  \
     { log.debug(domain, fmt, args...); }
+
+#define DEF_ERROR_FOR(domain) \
+    template <class... Args> \
+    static void error(const char* fmt, Args... args)  \
+    { log.error(domain, fmt, args...); }
 
     extern Logger log;
 };

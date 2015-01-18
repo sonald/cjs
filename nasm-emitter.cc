@@ -122,10 +122,19 @@ _main:
             if (nr_arg > 5) {
                 // push into stack
             }
-            auto* id = dynamic_cast<ast::StringLiteral*>(ptr.get());
-            string label = id->symbol()->name;
-            _os << "mov rax, " << label << endl;
-            _os << "mov " << reqs[nr_arg] << ", rax" << endl;
+
+            if (ptr->type() == ast::AstType::Identifier) {
+                auto* id = dynamic_cast<ast::Identifier*>(ptr.get());
+                debug("can not handle ident (%) now", id->token().sval);
+
+            } else { // should be literal
+                auto* id = dynamic_cast<ast::Literal*>(ptr.get());
+                if (id->type() == ast::AstType::StringLiteral) {
+                    string label = id->symbol()->name;
+                    _os << "mov r10, " << label << endl;
+                    _os << "mov " << reqs[nr_arg] << ", r10" << endl;
+                }
+            } 
             nr_arg++;
         });
     }
@@ -134,7 +143,7 @@ _main:
     {
     }
 
-    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::StringLiteral* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::Literal* node) 
     {
 
     }

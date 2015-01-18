@@ -28,25 +28,54 @@ namespace cjs
 {
     using namespace ast;
     DEF_DEBUG_FOR(Logger::Parser);
-
-    static void error(const string& msg)
-    {
-        cerr << "Parser: " << msg << endl;
-        exit(-1);
-    }
-
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Program* node)
-    {
-    }
+    DEF_ERROR_FOR(Logger::Parser);
 
     void ReprVisitor::visit(AstVisitor::Phase phase, ast::ExpressionStatement* node)
     {
         if (phase == AstVisitor::Phase::Bubble)
-            _repr += ";";
+            _repr += ";\n";
     }
 
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Expression* node)
+    void ReprVisitor::visit(Phase phase, ast::AssignExpression* node)
     {
+        if (phase == AstVisitor::Phase::Step) {
+            _repr += " = ";
+        }
+    }
+
+    void ReprVisitor::visit(Phase phase, ast::AdditiveExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Step) {
+            _repr += " " + node->op().sval + " ";
+        }
+    }
+
+    void ReprVisitor::visit(Phase phase, ast::MultitiveExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Step) {
+            _repr += " " + node->op().sval + " ";
+        }
+    }
+
+    void ReprVisitor::visit(Phase phase, ast::UnaryExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Capture) {
+            _repr += node->op().sval;
+        }
+    }
+
+    void ReprVisitor::visit(Phase phase, ast::PostfixExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Bubble) {
+            _repr += node->op().sval;
+        }
+    }
+
+    void ReprVisitor::visit(Phase phase, ast::NewExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Capture) {
+            _repr += "new ";
+        }
     }
 
     void ReprVisitor::visit(AstVisitor::Phase phase, ast::CallExpression* node)
@@ -55,7 +84,7 @@ namespace cjs
 
     void ReprVisitor::visit(AstVisitor::Phase phase, ast::MemberExpression* node)
     {
-        if (phase == AstVisitor::Phase::Bubble) {
+        if (phase == AstVisitor::Phase::Step) {
             if (node->property()) {
                 _repr += ".";
             }
@@ -64,20 +93,25 @@ namespace cjs
 
     void ReprVisitor::visit(AstVisitor::Phase phase, ast::CallArgs* node)
     {
-        if (phase == AstVisitor::Phase::Capture)
+        if (phase == AstVisitor::Phase::Capture) {
             _repr += "(";
-        else if (phase == AstVisitor::Phase::Bubble)
+        } else if (phase == AstVisitor::Phase::Step) {
+            static int nr_args = 0;
+            if (nr_args++) _repr += ",";
+
+        } else if (phase == AstVisitor::Phase::Bubble) {
             _repr += ")";
+        }
     }
 
     //FIXME: I dont know where does this node come from 
     //(e.g CallArgs or MemberExpression etc), may need parent node info
     void ReprVisitor::visit(AstVisitor::Phase phase, ast::Identifier* node)
     {
-        _repr += node->token().sval + ", ";
+        _repr += node->token().sval;
     }
 
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::StringLiteral* node)
+    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Literal* node)
     {
         _repr += "\'" + node->token().sval + "\'";
     }
@@ -107,8 +141,10 @@ namespace cjs
 
     Ast* Parser::expressionStatement()
     {
-        auto* nd = new ExpressionStatement {expr()};
+        debug("parse expr statement");
+        auto* nd = new ExpressionStatement {expression(1)};
         _tokens->match(Token::TokenType::Semicolon);
+        debug("parsed expr statement");
         return nd;
     }
 
@@ -119,25 +155,66 @@ namespace cjs
 
     Ast* Parser::primary()
     {
-        if (_tokens->peek() == TokenType::StringLiteral) {
-            return literal();
+        switch(_tokens->peek()) {
+            case TokenType::StringLiteral:
+            case TokenType::BooleanLiteral:
+            case TokenType::NullLiteral:
+            case TokenType::NumericLiteral:
+            case TokenType::RegexLiteral:
+                return literal();
 
-        } else if (_tokens->peek() == TokenType::Identifier) {
-            return ident();
+            case TokenType::Identifier:
+                return ident();
 
-        } else 
-            error("parse primary failed");
+            default:
+                error("parse primary failed");
+        }
         return nullptr;
     }
+
     Ast* Parser::literal()
     {
-        auto* nd = new StringLiteral(_tokens->token());
-        _tokens->match(TokenType::StringLiteral);
+        debug("parse literal");
+        AstType ty;
+        Token tk = _tokens->token();
+        switch(_tokens->peek()) {
+            case TokenType::StringLiteral:
+                ty = AstType::StringLiteral;
+                _tokens->match(TokenType::StringLiteral);
+                break;
+
+            case TokenType::BooleanLiteral:
+                ty = AstType::BooleanLiteral;
+                _tokens->match(TokenType::BooleanLiteral);
+                break;
+
+            case TokenType::NullLiteral:
+                ty = AstType::NullLiteral;
+                _tokens->match(TokenType::NullLiteral);
+                break;
+
+            case TokenType::NumericLiteral:
+                ty = AstType::NumericLiteral;
+                _tokens->match(TokenType::NumericLiteral);
+                break;
+
+            case TokenType::RegexLiteral:
+                ty = AstType::RegularExpressionLiteral;
+                _tokens->match(TokenType::RegexLiteral);
+                break;
+
+            default:
+                return nullptr;
+                break;
+        }
+
+        Ast* nd = new Literal(tk, ty);
         return nd;
     }
 
     Ast* Parser::ident()
     {
+        debug("parse ident");
         auto* nd = new Identifier {_tokens->token()};
         _tokens->match(TokenType::Identifier);
         return nd;
@@ -187,4 +264,139 @@ namespace cjs
         return nd;
     }
 
+    ast::Ast* Parser::expression(int rbp)
+    {
+        auto* left = nud(_tokens->peek());
+        auto op = _tokens->token();
+        while (pred(op.type, true) >= rbp) {
+            left = led(op, left);
+            op = _tokens->token();
+        }
+        return left;
+    }
+
+    int Parser::pred(TokenType ty, bool post)
+    {
+        switch(ty) {
+            case TokenType::EOS: return 0;
+            case TokenType::ASSIGNMENT: return 10;
+            case TokenType::PLUS: return post ? 40: 20;
+            case TokenType::MINUS: return post ? 40: 20;
+            case TokenType::MUL: return 30;
+            case TokenType::DIV: return 30;
+            case TokenType::INCREMENT: return post ? 50: 40;
+            case TokenType::DECREMENT: return post ? 50: 40;
+            case TokenType::NEW: return 60;
+            case TokenType::Dot: return 70;
+            case TokenType::LParen: return 80;
+            default: return 0;
+        }
+        return 0;
+    }
+
+    Parser::Associate Parser::assoc(TokenType ty)
+    {
+        if (ty == TokenType::ASSIGNMENT) return Associate::RightAssoc;
+        else return Associate::LeftAssoc;
+    }
+
+    ast::Ast* Parser::led(const Token& tk, ast::Ast* left)
+    {
+        _tokens->advance();
+        ast::Ast* ret = nullptr;
+        switch (tk.type) {
+            case TokenType::ASSIGNMENT:
+            {
+                debug("parse assignment");
+                //FIXME: right assoc
+                ast::Ast* assignee = expression(pred(tk.type));
+                ret = new AssignExpression(left, assignee);
+                break;
+            }
+
+            // infix
+            case TokenType::MINUS:
+            case TokenType::PLUS:
+            {
+                debug("parse additive");
+                ast::Ast* rhs = expression(pred(tk.type));
+                ret = new AdditiveExpression(tk, left, rhs);
+                break;
+            }
+
+            case TokenType::MUL:
+            case TokenType::DIV:
+            {
+                debug("parse multitive");
+                ast::Ast* rhs = expression(pred(tk.type));
+                ret = new MultitiveExpression(tk, left, rhs);
+                break;
+            }
+
+            // postfix
+            case TokenType::DECREMENT:
+            case TokenType::INCREMENT:
+            {
+                debug("parse postfix");
+                ast::Ast* post = expression(pred(tk.type));
+                ret = new PostfixExpression(tk, post);
+                break;
+            }
+
+            default:
+                error("nud is not valid for (%)", tk);
+                break;
+        }
+        return ret;
+    }
+
+    ast::Ast* Parser::nud(TokenType ty)
+    {
+        Token op = _tokens->token();
+        ast::Ast* ret = nullptr;
+        switch (ty) {
+            //unary and prefix
+            case TokenType::MINUS:
+            case TokenType::PLUS:
+            case TokenType::DECREMENT:
+            case TokenType::INCREMENT:
+            {
+                debug("parse unary");
+                _tokens->advance();
+                ast::Ast* unary = expression(pred(op.type));
+                ret = new UnaryExpression(op, unary);
+                break;
+            }
+
+            case TokenType::NEW:
+            {
+                debug("parse new expr");
+                _tokens->advance();
+                ast::Ast* member = expression(pred(op.type));
+                ret = new NewExpression(member);
+                break;
+            }
+
+            case TokenType::StringLiteral:
+            case TokenType::BooleanLiteral:
+            case TokenType::NullLiteral:
+            case TokenType::NumericLiteral:
+            case TokenType::RegexLiteral:
+            {
+                ret = literal();
+                break;
+            }
+
+            case TokenType::Identifier:
+            {
+                ret = ident();
+                break;
+            }
+
+            default:
+                error ("nud is not valid for ");
+                break;
+        }
+        return ret;
+    }
 }

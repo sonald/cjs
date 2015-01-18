@@ -35,30 +35,41 @@ namespace cjs
         public:
             enum class Phase {
                 Capture,
+                Step, // middle phases between child nodes visited
                 Bubble
             };
 
-            virtual void visit(Phase phase, ast::Program* node) = 0;
-            virtual void visit(Phase phase, ast::ExpressionStatement* node) = 0;
-            virtual void visit(Phase phase, ast::Expression* node) = 0;
-            virtual void visit(Phase phase, ast::CallExpression* node) = 0;
-            virtual void visit(Phase phase, ast::MemberExpression* node) = 0;
-            virtual void visit(Phase phase, ast::CallArgs* node) = 0;
-            virtual void visit(Phase phase, ast::Identifier* node) = 0;
-            virtual void visit(Phase phase, ast::StringLiteral* node) = 0;
+            virtual void visit(Phase phase, ast::Program* node){}
+            virtual void visit(Phase phase, ast::ExpressionStatement* node){}
+            virtual void visit(Phase phase, ast::Expression* node){}
+            virtual void visit(Phase phase, ast::AssignExpression* node){}
+            virtual void visit(Phase phase, ast::AdditiveExpression* node){}
+            virtual void visit(Phase phase, ast::MultitiveExpression* node){}
+            virtual void visit(Phase phase, ast::UnaryExpression* node){}
+            virtual void visit(Phase phase, ast::PostfixExpression* node){}
+            virtual void visit(Phase phase, ast::NewExpression* node){}
+            virtual void visit(Phase phase, ast::CallExpression* node){}
+            virtual void visit(Phase phase, ast::MemberExpression* node){}
+            virtual void visit(Phase phase, ast::CallArgs* node){}
+            virtual void visit(Phase phase, ast::Identifier* node){}
+            virtual void visit(Phase phase, ast::Literal* node){}
     };
 
     class ReprVisitor: public AstVisitor
     {
         public:
-            virtual void visit(Phase phase, ast::Program* node) override;
             virtual void visit(Phase phase, ast::ExpressionStatement* node) override;
-            virtual void visit(Phase phase, ast::Expression* node) override;
+            virtual void visit(Phase phase, ast::AssignExpression* node) override;
+            virtual void visit(Phase phase, ast::AdditiveExpression* node) override;
+            virtual void visit(Phase phase, ast::MultitiveExpression* node) override;
+            virtual void visit(Phase phase, ast::UnaryExpression* node) override;
+            virtual void visit(Phase phase, ast::PostfixExpression* node) override;
+            virtual void visit(Phase phase, ast::NewExpression* node) override;
             virtual void visit(Phase phase, ast::CallExpression* node) override;
             virtual void visit(Phase phase, ast::MemberExpression* node) override;
             virtual void visit(Phase phase, ast::CallArgs* node) override;
             virtual void visit(Phase phase, ast::Identifier* node) override;
-            virtual void visit(Phase phase, ast::StringLiteral* node) override;
+            virtual void visit(Phase phase, ast::Literal* node) override;
             string repr() const { return _repr; }
 
         private:
@@ -71,6 +82,8 @@ namespace cjs
             Parser();
             ast::Ast* program(const string& path);
             ast::Ast* expressionStatement();
+            ast::Ast* expression(int rbp = 0);
+
             ast::Ast* expr();
             ast::Ast* callexpr();
             ast::Ast* memberexpr(ast::Ast* obj = nullptr);
@@ -81,6 +94,17 @@ namespace cjs
 
         private:
             unique_ptr<Tokenizer> _tokens; 
+
+            enum class Associate {
+                LeftAssoc,
+                RightAssoc,
+                NonAssoc
+            };
+
+            ast::Ast* nud(TokenType ty);
+            ast::Ast* led(const Token& tk, ast::Ast* left);
+            int pred(TokenType ty, bool post = false);
+            Associate assoc(TokenType ty);
     };
 };
 

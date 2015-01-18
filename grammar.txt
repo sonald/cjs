@@ -1,5 +1,6 @@
 NOTE: not all productions give semantically correct structure, so of 
-errors should be judged during semantic analysis
+errors about semantic should be judged during semantic analysis.
+and it definitely not LL(k) grammar.
 
 grammar:
     prog := statementlist
@@ -9,8 +10,35 @@ grammar:
    
     exprstatement := expr ';'
    
-    expr := callexpr
+    expr := assignmentexpr
    
+    assignmentexpr := lefthandside '=' assignmentexpr
+        | additive
+
+    additive := multitive
+        | additive '+' multitive
+        | additive '-' multitive
+
+    multitive := unary
+        | unary '*' lefthandside
+        | unary '/' lefthandside
+
+    unary := '++' unary
+        | '--' unary
+        | '-' unary
+        | '+' unary
+        | postfix
+
+    postfix := lefthandside '++'
+        | lefthandside '--'
+        | lefthandside
+
+    lefthandside := newexpr
+        | callexpr
+        
+    newexpr := NEW memberexpr
+        | memberexpr
+
     callexpr := memberexpr args
    
     memberexpr := primary
@@ -22,5 +50,49 @@ grammar:
     arglist := primary 
         | primary ',' arglist
    
-    primary := literal
+    primary := primitive
         | ident
+
+    primitive := 
+        | NullLiteral
+        | BooleanLiteral
+        | NumericLiteral
+        | StringLiteral
+        | RegularExpressionLiteral
+
+
+lexical:
+    ident := undefined 
+        | [$_:alpha:][$_:alnum:]*
+    NullLiteral := null
+    BooleanLiteral := true | false;
+    NumericLiteral := \d*{.\d*{e\d+}}
+    StringLiteral := " [^"]* " | ' [^']* '
+    RegularExpressionLiteral := /[^/]*/[ig]
+
+    reserved := function
+        | var
+        | break   
+        | do  
+        | instanceof  
+        | typeof
+        | case    
+        | else    
+        | new 
+        | catch   
+        | finally 
+        | return  
+        | void
+        | continue    
+        | for 
+        | switch  
+        | while
+        | debugger    
+        | this    
+        | with
+        | default 
+        | if  
+        | throw   
+        | delete  
+        | in  
+        | try

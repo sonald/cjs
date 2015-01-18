@@ -36,11 +36,19 @@ namespace ast
         Program,
         StatementList,
         ExpressionStatement,
-        Expression,
+        AssignExpression,
+        AdditiveExpression,
+        MultitiveExpression,
+        UnaryExpression,
+        PostfixExpression,
+        NewExpression,
         CallExpression,
-        Primary,
         Identifier,
         StringLiteral,
+        NullLiteral,
+        BooleanLiteral,
+        NumericLiteral,
+        RegularExpressionLiteral,
         MemberExpression,
         CallArgs,
     };
@@ -93,6 +101,100 @@ namespace ast
             virtual void visit(AstVisitor* visitor) override;
     };
 
+    class AssignExpression: public Expression 
+    {
+        public:
+            AssignExpression(Ast* lhs, Ast* assignee)
+                : Expression(AstType::AssignExpression), _lhs{lhs}, _assignee{assignee} {}
+            virtual void visit(AstVisitor* visitor) override;
+            AstPtr lhs() { return _lhs; }
+            AstPtr assignee() { return _assignee; }
+
+        protected:
+            AstPtr _lhs;  // lefthandside {NewExpression | CallExpression}
+            AstPtr _assignee; // AssignExpression
+    };
+
+    class AdditiveExpression: public Expression
+    {
+        public:
+            AdditiveExpression(Token op, Ast* lhs, Ast* rhs)
+                : Expression(AstType::AdditiveExpression), _op(op), _lhs{lhs}, _rhs{rhs}
+            { }
+
+            virtual void visit(AstVisitor* visitor) override;
+            AstPtr lhs() { return _lhs; }
+            AstPtr rhs() { return _rhs; }
+            Token op() { return _op; }
+
+        protected:
+            Token _op;
+            AstPtr _lhs, _rhs;
+    };
+
+    class MultitiveExpression: public Expression
+    {
+        public:
+            MultitiveExpression(Token op, Ast* lhs, Ast* rhs)
+                : Expression(AstType::MultitiveExpression), _op(op), _lhs{lhs}, _rhs{rhs}
+            { }
+
+            virtual void visit(AstVisitor* visitor) override;
+            AstPtr lhs() { return _lhs; }
+            AstPtr rhs() { return _rhs; }
+            Token op() { return _op; }
+
+        protected:
+            Token _op;
+            AstPtr _lhs, _rhs;
+    };
+
+    class UnaryExpression: public Expression
+    {
+        public:
+            UnaryExpression(Token op, Ast* unary)
+                : Expression(AstType::UnaryExpression), _op(op), _unary{unary}
+            { }
+
+            virtual void visit(AstVisitor* visitor) override;
+            AstPtr unary() { return _unary; }
+            Token op() { return _op; }
+
+        protected:
+            Token _op;
+            AstPtr _unary;
+    };
+
+    class PostfixExpression: public Expression
+    {
+        public:
+            PostfixExpression(Token op, Ast* post)
+                : Expression(AstType::PostfixExpression), _op(op), _post{post}
+            { }
+
+            virtual void visit(AstVisitor* visitor) override;
+            AstPtr post() { return _post; }
+            Token op() { return _op; }
+
+        protected:
+            Token _op;
+            AstPtr _post; // lefthandside
+    };
+
+    class NewExpression: public Expression
+    {
+        public:
+            NewExpression(Ast* member)
+                : Expression(AstType::NewExpression), _member{member}
+            { }
+
+            virtual void visit(AstVisitor* visitor) override;
+            AstPtr member() { return _member; }
+
+        protected:
+            AstPtr _member;
+    };
+
     class CallExpression: public Expression 
     {
         public:
@@ -118,10 +220,10 @@ namespace ast
             Token _token;
     };
 
-    class StringLiteral: public Expression 
+    class Literal: public Expression 
     {
         public:
-            StringLiteral(Token tk): Expression(AstType::StringLiteral), _token(tk) {}
+            Literal(Token tk, AstType ty): Expression(ty), _token(tk) {}
             virtual void visit(AstVisitor* visitor) override;
             Token& token() { return _token; }
 
