@@ -46,10 +46,10 @@ namespace cjs
             NasmEmitterVisitor emitter {os};
             ptr->visit(&emitter);
 
-            //_be->compile(name);
+            _be->compile(name);
         }
 
-        //_be->link();
+        _be->link();
         //TODO: cleanup
     }
 

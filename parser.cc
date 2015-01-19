@@ -23,99 +23,12 @@
 #include <fstream>
 #include <memory>
 
-using namespace std;
 namespace cjs
 {
+    using namespace std;
     using namespace ast;
     DEF_DEBUG_FOR(Logger::Parser);
     DEF_ERROR_FOR(Logger::Parser);
-
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::ExpressionStatement* node)
-    {
-        if (phase == AstVisitor::Phase::Bubble)
-            _repr += ";\n";
-    }
-
-    void ReprVisitor::visit(Phase phase, ast::AssignExpression* node)
-    {
-        if (phase == AstVisitor::Phase::Step) {
-            _repr += " = ";
-        }
-    }
-
-    void ReprVisitor::visit(Phase phase, ast::AdditiveExpression* node)
-    {
-        if (phase == AstVisitor::Phase::Step) {
-            _repr += " " + node->op().sval + " ";
-        }
-    }
-
-    void ReprVisitor::visit(Phase phase, ast::MultitiveExpression* node)
-    {
-        if (phase == AstVisitor::Phase::Step) {
-            _repr += " " + node->op().sval + " ";
-        }
-    }
-
-    void ReprVisitor::visit(Phase phase, ast::UnaryExpression* node)
-    {
-        if (phase == AstVisitor::Phase::Capture) {
-            _repr += node->op().sval;
-        }
-    }
-
-    void ReprVisitor::visit(Phase phase, ast::PostfixExpression* node)
-    {
-        if (phase == AstVisitor::Phase::Bubble) {
-            _repr += node->op().sval;
-        }
-    }
-
-    void ReprVisitor::visit(Phase phase, ast::NewExpression* node)
-    {
-        if (phase == AstVisitor::Phase::Capture) {
-            _repr += "new ";
-        }
-    }
-
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::CallExpression* node)
-    {
-    }
-
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::MemberExpression* node)
-    {
-        if (phase == AstVisitor::Phase::Step) {
-            if (node->property()) {
-                _repr += ".";
-            }
-        }
-    }
-
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::CallArgs* node)
-    {
-        if (phase == AstVisitor::Phase::Capture) {
-            _repr += "(";
-        } else if (phase == AstVisitor::Phase::Step) {
-            static int nr_args = 0;
-            if (nr_args++) _repr += ",";
-
-        } else if (phase == AstVisitor::Phase::Bubble) {
-            _repr += ")";
-        }
-    }
-
-    //FIXME: I dont know where does this node come from 
-    //(e.g CallArgs or MemberExpression etc), may need parent node info
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Identifier* node)
-    {
-        _repr += node->token().sval;
-    }
-
-    void ReprVisitor::visit(AstVisitor::Phase phase, ast::Literal* node)
-    {
-        _repr += "\'" + node->token().sval + "\'";
-    }
-
 
     Parser::Parser()
         :_tokens{nullptr}
@@ -146,11 +59,6 @@ namespace cjs
         _tokens->match(Token::TokenType::Semicolon);
         debug("parsed expr statement");
         return nd;
-    }
-
-    Ast* Parser::expr()
-    {
-        return callexpr();
     }
 
     Ast* Parser::primary()
@@ -220,9 +128,9 @@ namespace cjs
         return nd;
     }
 
-    Ast* Parser::callexpr()
+    ast::Ast* Parser::callexpr(ast::Ast* lhs)
     {
-        auto* nd = new CallExpression {memberexpr(), args()};
+        auto* nd = new CallExpression {lhs, args()};
         return nd;
     }
 
@@ -287,8 +195,8 @@ namespace cjs
             case TokenType::INCREMENT: return post ? 50: 40;
             case TokenType::DECREMENT: return post ? 50: 40;
             case TokenType::NEW: return 60;
-            case TokenType::Dot: return 70;
-            case TokenType::LParen: return 80;
+            case TokenType::LParen: return 70; // callexpr
+            case TokenType::Dot: return 80; // member ref
             default: return 0;
         }
         return 0;
@@ -297,6 +205,7 @@ namespace cjs
     Parser::Associate Parser::assoc(TokenType ty)
     {
         if (ty == TokenType::ASSIGNMENT) return Associate::RightAssoc;
+        if (ty == TokenType::NEW) return Associate::RightAssoc;
         else return Associate::LeftAssoc;
     }
 
@@ -338,8 +247,24 @@ namespace cjs
             case TokenType::INCREMENT:
             {
                 debug("parse postfix");
-                ast::Ast* post = expression(pred(tk.type));
-                ret = new PostfixExpression(tk, post);
+                ret = new PostfixExpression(tk, left);
+                break;
+            }
+
+            case TokenType::Dot:
+            {
+                debug("parse memberexpr");
+                Ast* p = expression(pred(tk.type));
+                ret = new MemberExpression{left, p};
+                break;
+            }
+
+            case TokenType::LParen:
+            {
+                debug("parse callexpr");
+                if (left->type() != ast::AstType::MemberExpression)
+                        left = new MemberExpression{left};
+                ret = callexpr(left);
                 break;
             }
 
@@ -363,7 +288,7 @@ namespace cjs
             {
                 debug("parse unary");
                 _tokens->advance();
-                ast::Ast* unary = expression(pred(op.type));
+                ast::Ast* unary = expression(pred(op.type, false));
                 ret = new UnaryExpression(op, unary);
                 break;
             }
@@ -394,7 +319,7 @@ namespace cjs
             }
 
             default:
-                error ("nud is not valid for ");
+                error("nud is not valid for (%s)", op.sval);
                 break;
         }
         return ret;

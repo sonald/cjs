@@ -82,15 +82,6 @@ namespace cjs
             Parser();
             ast::Ast* program(const string& path);
             ast::Ast* expressionStatement();
-            ast::Ast* expression(int rbp = 0);
-
-            ast::Ast* expr();
-            ast::Ast* callexpr();
-            ast::Ast* memberexpr(ast::Ast* obj = nullptr);
-            ast::Ast* args();
-            ast::Ast* primary();
-            ast::Ast* literal();
-            ast::Ast* ident();
 
         private:
             unique_ptr<Tokenizer> _tokens; 
@@ -103,8 +94,17 @@ namespace cjs
 
             ast::Ast* nud(TokenType ty);
             ast::Ast* led(const Token& tk, ast::Ast* left);
-            int pred(TokenType ty, bool post = false);
+            int pred(TokenType ty, bool post = true);
             Associate assoc(TokenType ty);
+
+            ast::Ast* expression(int rbp = 0);
+            ast::Ast* callexpr(ast::Ast* lhs);
+            ast::Ast* memberexpr(ast::Ast* obj = nullptr);
+            ast::Ast* args();
+            ast::Ast* primary();
+            ast::Ast* literal();
+            ast::Ast* ident();
+
     };
 };
 

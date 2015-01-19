@@ -22,6 +22,8 @@
 namespace cjs
 {
     DEF_DEBUG_FOR(Logger::TypeChecker)
+    DEF_ERROR_FOR(Logger::TypeChecker)
+
     void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::Program* node) 
     {
         if (phase == AstVisitor::Phase::Capture) {
@@ -52,6 +54,12 @@ namespace cjs
 
     void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::PostfixExpression* node)
     {
+        if (phase == AstVisitor::Phase::Capture) {
+            if (node->post()->type() != ast::AstType::NewExpression 
+                && node->post()->type() != ast::AstType::CallExpression) {
+                error("ReferenceError: Invalid left-hand side expression in postfix operation");
+            }
+        }
     }
 
     void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::NewExpression* node)
@@ -64,14 +72,13 @@ namespace cjs
 
     void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::MemberExpression* node) 
     {
-        auto func = node->object();
-        assert(func->type() == ast::AstType::Identifier);
+        if (phase == AstVisitor::Phase::Bubble) {
+            auto func = node->object();
+            assert(func->type() == ast::AstType::Identifier);
 
-        ast::Identifier* id = dynamic_cast<ast::Identifier*>(func.get());
-        auto psym = Environment::current()->get(id->token().sval);
-        assert(!!psym);
-        if (!psym) {
-
+            ast::Identifier* id = dynamic_cast<ast::Identifier*>(func.get());
+            auto psym = Environment::current()->get(id->token().sval);
+            //assert(!!psym);
         }
     }
 

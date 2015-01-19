@@ -6,6 +6,11 @@
 },
 {
   "directory": "/Users/sonald/Dropbox/stage/cjs/build",
+  "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/astvisitor.cc.o -c /Users/sonald/Dropbox/stage/cjs/astvisitor.cc",
+  "file": "/Users/sonald/Dropbox/stage/cjs/astvisitor.cc"
+},
+{
+  "directory": "/Users/sonald/Dropbox/stage/cjs/build",
   "command": "/usr/bin/c++     -std=c++1y -g -I/Users/sonald/Dropbox/stage/cjs/build -I/Users/sonald/Dropbox/stage/cjs    -o CMakeFiles/cjs.dir/backend.cc.o -c /Users/sonald/Dropbox/stage/cjs/backend.cc",
   "file": "/Users/sonald/Dropbox/stage/cjs/backend.cc"
 },

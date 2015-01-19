@@ -125,10 +125,13 @@ namespace ast
     void CallArgs::visit(AstVisitor* visitor)
     {
         visitor->visit(AstVisitor::Phase::Capture, this);
+        bool first = true;
         auto& l = args();
         for_each(l.begin(), l.end(), [&](const ast::AstPtr& ptr) {
+            if (!first)
+                visitor->visit(AstVisitor::Phase::Step, this);
             ptr->visit(visitor);
-            visitor->visit(AstVisitor::Phase::Step, this);
+            first = false;
         });
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }
