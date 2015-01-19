@@ -40,11 +40,7 @@ namespace cjs
     {
     }
 
-    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::AdditiveExpression* node)
-    {
-    }
-
-    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::MultitiveExpression* node)
+    void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::BinaryExpression* node)
     {
     }
 

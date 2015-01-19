@@ -30,52 +30,6 @@ namespace cjs
     using namespace std;
     using TokenType = Token::TokenType;
 
-    class AstVisitor
-    {
-        public:
-            enum class Phase {
-                Capture,
-                Step, // middle phases between child nodes visited
-                Bubble
-            };
-
-            virtual void visit(Phase phase, ast::Program* node){}
-            virtual void visit(Phase phase, ast::ExpressionStatement* node){}
-            virtual void visit(Phase phase, ast::Expression* node){}
-            virtual void visit(Phase phase, ast::AssignExpression* node){}
-            virtual void visit(Phase phase, ast::AdditiveExpression* node){}
-            virtual void visit(Phase phase, ast::MultitiveExpression* node){}
-            virtual void visit(Phase phase, ast::UnaryExpression* node){}
-            virtual void visit(Phase phase, ast::PostfixExpression* node){}
-            virtual void visit(Phase phase, ast::NewExpression* node){}
-            virtual void visit(Phase phase, ast::CallExpression* node){}
-            virtual void visit(Phase phase, ast::MemberExpression* node){}
-            virtual void visit(Phase phase, ast::CallArgs* node){}
-            virtual void visit(Phase phase, ast::Identifier* node){}
-            virtual void visit(Phase phase, ast::Literal* node){}
-    };
-
-    class ReprVisitor: public AstVisitor
-    {
-        public:
-            virtual void visit(Phase phase, ast::ExpressionStatement* node) override;
-            virtual void visit(Phase phase, ast::AssignExpression* node) override;
-            virtual void visit(Phase phase, ast::AdditiveExpression* node) override;
-            virtual void visit(Phase phase, ast::MultitiveExpression* node) override;
-            virtual void visit(Phase phase, ast::UnaryExpression* node) override;
-            virtual void visit(Phase phase, ast::PostfixExpression* node) override;
-            virtual void visit(Phase phase, ast::NewExpression* node) override;
-            virtual void visit(Phase phase, ast::CallExpression* node) override;
-            virtual void visit(Phase phase, ast::MemberExpression* node) override;
-            virtual void visit(Phase phase, ast::CallArgs* node) override;
-            virtual void visit(Phase phase, ast::Identifier* node) override;
-            virtual void visit(Phase phase, ast::Literal* node) override;
-            string repr() const { return _repr; }
-
-        private:
-            string _repr;
-    };
-
     class Parser
     {
         public:
@@ -98,13 +52,10 @@ namespace cjs
             Associate assoc(TokenType ty);
 
             ast::Ast* expression(int rbp = 0);
-            ast::Ast* callexpr(ast::Ast* lhs);
-            ast::Ast* memberexpr(ast::Ast* obj = nullptr);
-            ast::Ast* args();
             ast::Ast* primary();
             ast::Ast* literal();
             ast::Ast* ident();
-
+            ast::Ast* args();
     };
 };
 

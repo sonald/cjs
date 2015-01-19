@@ -15,7 +15,7 @@
 // Copyright (C) Sian Cao <yinshuiboy@gmail.com>, 2015
 
 #include "ast.h"
-#include "parser.h"
+#include "astvisitor.h"
 
 namespace cjs
 {
@@ -63,16 +63,7 @@ namespace ast
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }
 
-    void AdditiveExpression::visit(AstVisitor* visitor)
-    {
-        visitor->visit(AstVisitor::Phase::Capture, this);
-        lhs()->visit(visitor);
-        visitor->visit(AstVisitor::Phase::Step, this);
-        rhs()->visit(visitor);
-        visitor->visit(AstVisitor::Phase::Bubble, this);
-    }
-
-    void MultitiveExpression::visit(AstVisitor* visitor)
+    void BinaryExpression::visit(AstVisitor* visitor)
     {
         visitor->visit(AstVisitor::Phase::Capture, this);
         lhs()->visit(visitor);

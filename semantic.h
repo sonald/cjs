@@ -18,6 +18,7 @@
 #define _CJS_SEMANTIC_H 
 
 #include "parser.h"
+#include "astvisitor.h"
 
 namespace cjs
 {
@@ -28,8 +29,7 @@ namespace cjs
             virtual void visit(AstVisitor::Phase phase, ast::Program* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::ExpressionStatement* node) override;
             virtual void visit(Phase phase, ast::AssignExpression* node) override;
-            virtual void visit(Phase phase, ast::AdditiveExpression* node) override;
-            virtual void visit(Phase phase, ast::MultitiveExpression* node) override;
+            virtual void visit(Phase phase, ast::BinaryExpression* node) override;
             virtual void visit(Phase phase, ast::UnaryExpression* node) override;
             virtual void visit(Phase phase, ast::PostfixExpression* node) override;
             virtual void visit(Phase phase, ast::NewExpression* node) override;

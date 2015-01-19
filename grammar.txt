@@ -11,6 +11,7 @@ grammar:
     exprstatement := expr ';'
    
     expr := assignmentexpr
+        | expr ',' assignmentexpr
    
     assignmentexpr := lefthandside '=' assignmentexpr
         | additive
@@ -47,8 +48,8 @@ grammar:
     args := '(' ')' 
         | '(' arglist ')'
    
-    arglist := primary 
-        | primary ',' arglist
+    arglist := assignmentexpr 
+        | assignmentexpr ',' arglist
    
     primary := primitive
         | ident

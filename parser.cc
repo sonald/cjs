@@ -17,6 +17,7 @@
 #include "parser.h"
 #include "lexer.h"
 #include "ast.h"
+#include "astvisitor.h"
 #include "debug.h"
 
 #include <iostream>
@@ -58,6 +59,21 @@ namespace cjs
         auto* nd = new ExpressionStatement {expression(1)};
         _tokens->match(Token::TokenType::Semicolon);
         debug("parsed expr statement");
+        return nd;
+    }
+
+    Ast* Parser::args()
+    {
+        auto* nd = new CallArgs;
+        if (_tokens->peek() != TokenType::RParen) {
+            while (1) {
+                nd->append(primary());
+                if (_tokens->peek() != TokenType::Comma)
+                    break;
+                _tokens->match(TokenType::Comma);
+            }
+        }
+
         return nd;
     }
 
@@ -123,52 +139,8 @@ namespace cjs
     Ast* Parser::ident()
     {
         debug("parse ident");
-        auto* nd = new Identifier {_tokens->token()};
+        auto* nd = new Identifier{_tokens->token()};
         _tokens->match(TokenType::Identifier);
-        return nd;
-    }
-
-    ast::Ast* Parser::callexpr(ast::Ast* lhs)
-    {
-        auto* nd = new CallExpression {lhs, args()};
-        return nd;
-    }
-
-    Ast* Parser::memberexpr(Ast* obj)
-    {
-        if (obj) {
-            if (_tokens->peek() != TokenType::Dot) {
-                if (obj->type() == ast::AstType::MemberExpression)
-                    return obj;
-                else 
-                    return new MemberExpression {obj};
-            }
-
-            _tokens->match(TokenType::Dot);
-            Ast* p = primary();
-            auto* nd = new MemberExpression {obj, p};
-            return memberexpr(nd);
-
-        } else {
-            Ast* p = primary();
-            return memberexpr(p);
-        }
-    }
-
-    Ast* Parser::args()
-    {
-        auto* nd = new CallArgs;
-        _tokens->match(TokenType::LParen); // eat '('
-        if (_tokens->peek() != TokenType::RParen) {
-            while (1) {
-                nd->append(primary());
-                if (_tokens->peek() != TokenType::Comma)
-                    break;
-                _tokens->match(TokenType::Comma);
-            }
-        }
-        _tokens->match(TokenType::RParen); // eat ')'
-
         return nd;
     }
 
@@ -176,20 +148,23 @@ namespace cjs
     {
         auto* left = nud(_tokens->peek());
         auto op = _tokens->token();
-        while (pred(op.type, true) >= rbp) {
+        while (pred(op.type, true) > rbp) {
+            _tokens->advance(); // eat op
             left = led(op, left);
             op = _tokens->token();
         }
         return left;
     }
 
+    /* post means infix or postfix operator */
     int Parser::pred(TokenType ty, bool post)
     {
         switch(ty) {
             case TokenType::EOS: return 0;
+            case TokenType::Comma: return 5;
             case TokenType::ASSIGNMENT: return 10;
-            case TokenType::PLUS: return post ? 40: 20;
-            case TokenType::MINUS: return post ? 40: 20;
+            case TokenType::PLUS: return post ? 20: 40;
+            case TokenType::MINUS: return post ? 20: 40;
             case TokenType::MUL: return 30;
             case TokenType::DIV: return 30;
             case TokenType::INCREMENT: return post ? 50: 40;
@@ -211,14 +186,14 @@ namespace cjs
 
     ast::Ast* Parser::led(const Token& tk, ast::Ast* left)
     {
-        _tokens->advance();
         ast::Ast* ret = nullptr;
+        auto rbp = pred(tk.type) - (assoc(tk.type) == Associate::RightAssoc ?1:0);
         switch (tk.type) {
             case TokenType::ASSIGNMENT:
             {
                 debug("parse assignment");
                 //FIXME: right assoc
-                ast::Ast* assignee = expression(pred(tk.type));
+                ast::Ast* assignee = expression(rbp);
                 ret = new AssignExpression(left, assignee);
                 break;
             }
@@ -226,19 +201,13 @@ namespace cjs
             // infix
             case TokenType::MINUS:
             case TokenType::PLUS:
-            {
-                debug("parse additive");
-                ast::Ast* rhs = expression(pred(tk.type));
-                ret = new AdditiveExpression(tk, left, rhs);
-                break;
-            }
-
             case TokenType::MUL:
             case TokenType::DIV:
+            case TokenType::Comma:
             {
-                debug("parse multitive");
-                ast::Ast* rhs = expression(pred(tk.type));
-                ret = new MultitiveExpression(tk, left, rhs);
+                debug("parse bianry");
+                ast::Ast* rhs = expression(rbp);
+                ret = new BinaryExpression(tk, left, rhs);
                 break;
             }
 
@@ -254,7 +223,7 @@ namespace cjs
             case TokenType::Dot:
             {
                 debug("parse memberexpr");
-                Ast* p = expression(pred(tk.type));
+                Ast* p = expression(rbp);
                 ret = new MemberExpression{left, p};
                 break;
             }
@@ -264,7 +233,12 @@ namespace cjs
                 debug("parse callexpr");
                 if (left->type() != ast::AstType::MemberExpression)
                         left = new MemberExpression{left};
-                ret = callexpr(left);
+                //auto* as = expression(rbp);
+                // this is not tdop style parsing, cause COMMA has two 
+                // meanings which makes ambiguity
+                auto* as = args();
+                _tokens->match(TokenType::RParen); // eat ')'
+                ret = new CallExpression{left, as};
                 break;
             }
 
@@ -324,4 +298,5 @@ namespace cjs
         }
         return ret;
     }
+
 }

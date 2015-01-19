@@ -37,8 +37,7 @@ namespace ast
         StatementList,
         ExpressionStatement,
         AssignExpression,
-        AdditiveExpression,
-        MultitiveExpression,
+        BinaryExpression,
         UnaryExpression,
         PostfixExpression,
         NewExpression,
@@ -115,11 +114,11 @@ namespace ast
             AstPtr _assignee; // AssignExpression
     };
 
-    class AdditiveExpression: public Expression
+    class BinaryExpression: public Expression
     {
         public:
-            AdditiveExpression(Token op, Ast* lhs, Ast* rhs)
-                : Expression(AstType::AdditiveExpression), _op(op), _lhs{lhs}, _rhs{rhs}
+            BinaryExpression(Token op, Ast* lhs, Ast* rhs)
+                : Expression(AstType::BinaryExpression), _op(op), _lhs{lhs}, _rhs{rhs}
             { }
 
             virtual void visit(AstVisitor* visitor) override;
@@ -132,22 +131,6 @@ namespace ast
             AstPtr _lhs, _rhs;
     };
 
-    class MultitiveExpression: public Expression
-    {
-        public:
-            MultitiveExpression(Token op, Ast* lhs, Ast* rhs)
-                : Expression(AstType::MultitiveExpression), _op(op), _lhs{lhs}, _rhs{rhs}
-            { }
-
-            virtual void visit(AstVisitor* visitor) override;
-            AstPtr lhs() { return _lhs; }
-            AstPtr rhs() { return _rhs; }
-            Token op() { return _op; }
-
-        protected:
-            Token _op;
-            AstPtr _lhs, _rhs;
-    };
 
     class UnaryExpression: public Expression
     {

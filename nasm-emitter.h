@@ -18,6 +18,7 @@
 #define _CJS_NASM_EMITTER_H 
 
 #include "parser.h"
+#include "astvisitor.h"
 #include <fstream>
 
 namespace cjs

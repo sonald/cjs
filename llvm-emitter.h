@@ -18,20 +18,12 @@
 #define _CJS_LLVM_EMITTER_H 
 
 #include "parser.h"
+#include "astvisitor.h"
 
 namespace cjs
 {
     class LLVMEmitterVisitor: public AstVisitor
     {
-        public:
-            virtual void visit(AstVisitor::Phase phase, ast::Program* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::ExpressionStatement* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::Expression* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::CallExpression* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::MemberExpression* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::CallArgs* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::Identifier* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::Literal* node) override;
     };
         
 };
