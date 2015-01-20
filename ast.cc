@@ -35,9 +35,12 @@ namespace ast
     void Program::visit(AstVisitor* visitor)
     {
         visitor->visit(AstVisitor::Phase::Capture, this);
+        bool first = true;
         for(auto& ptr: statements()) {
+            if (!first)
+                visitor->visit(AstVisitor::Phase::Step, this);
             ptr->visit(visitor);
-            visitor->visit(AstVisitor::Phase::Step, this);
+            first = false;
         }
         visitor->visit(AstVisitor::Phase::Bubble, this);
     }

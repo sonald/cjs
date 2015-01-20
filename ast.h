@@ -55,6 +55,23 @@ namespace ast
     class Ast;
     using AstPtr = shared_ptr<Ast>;
 
+    class Annotation
+    {
+    };
+
+    class TypeAnnotation: public Annotation
+    {
+    };
+
+    class ValueAnnotation: public Annotation
+    {
+    };
+
+    class AnnotationSet
+    {
+        public:
+    };
+
     class Ast 
     {
         public:

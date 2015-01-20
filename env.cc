@@ -69,11 +69,11 @@ namespace cjs
     {
     }
 
-    void Environment::add(string symbol, SymbolType st, void* val)
+    void Environment::add(string symbol, SymbolType st, SymbolScope scope, void* val)
     {
         debug("add symbol % from %", symbol, this);
         if (_symbols.find(symbol) == _symbols.end())
-            _symbols[symbol] = make_shared<Symbol>(st, symbol, val);
+            _symbols[symbol] = make_shared<Symbol>(st, scope, symbol, val);
         else 
             error("redefiniton of " + symbol);
     }

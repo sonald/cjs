@@ -33,7 +33,11 @@ namespace cjs
 
             virtual void visit(AstVisitor::Phase phase, ast::Program* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::ExpressionStatement* node) override;
-            virtual void visit(AstVisitor::Phase phase, ast::Expression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::AssignExpression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::BinaryExpression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::UnaryExpression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::PostfixExpression* node) override;
+            virtual void visit(AstVisitor::Phase phase, ast::NewExpression* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::CallExpression* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::MemberExpression* node) override;
             virtual void visit(AstVisitor::Phase phase, ast::CallArgs* node) override;
@@ -42,6 +46,16 @@ namespace cjs
 
         private:
             ofstream& _os;
+
+            template <class T, class... Args>
+            void emit(T arg1, Args... args) {
+                _os << arg1 << " ";
+                emit(args...);
+            }
+
+            void emit() {
+                _os << endl;
+            }
     };
         
 };

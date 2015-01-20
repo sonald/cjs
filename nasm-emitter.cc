@@ -17,6 +17,7 @@
 #include "nasm-emitter.h"
 #include "debug.h"
 #include "env.h"
+#include "astvisitor.h"
 
 #include <algorithm>
 #include <cassert>
@@ -24,7 +25,9 @@
 namespace cjs
 {
     using namespace std;
+    using namespace ast;
     DEF_DEBUG_FOR(Logger::Emitter);
+    DEF_ERROR_FOR(Logger::Emitter);
 
     NasmEmitterVisitor::NasmEmitterVisitor(ofstream& os)
         :AstVisitor(), _os(os)
@@ -37,12 +40,18 @@ namespace cjs
 
     void NasmEmitterVisitor::pre()
     {
+        // as suggested by nasm 64-bit
+        emit("    default rel");
+
         Environment& global = *Environment::top();
         assert(Environment::top() == Environment::current());
 
         for (const auto& x: global.symbols()) {
-            if (x.second->type == SymbolType::External) {
-                _os << "    extern _" << x.second->name;
+            if (x.second->scope == SymbolScope::External) {
+                emit("    extern", x.second->name);
+            }
+            if (x.second->scope == SymbolScope::Global) {
+                emit("    global ", x.second->name);
             }
         }
 
@@ -58,7 +67,7 @@ _main:
     void NasmEmitterVisitor::post()
     {
         _os << R"(
-    mov eax, 0
+    mov rax, r10
     leave
     ret
 )";
@@ -66,11 +75,17 @@ _main:
         _os << "section .data" << endl;
         for (auto& ptr: top.symbols()) {
             auto sym = ptr.second.get();
-            if (sym->type == SymbolType::StringLabel) {
-                string label = sym->name;
-                _os << label << ":\n";
-                _os << "    db \"" << static_cast<Token*>(sym->val)->sval << "\", 0\n";
-            }
+            switch (sym->type) {
+                case SymbolType::StringLabel:
+                    emit(sym->name, ":");
+                    emit("    db \"" + *static_cast<string*>(sym->val) + "\", 0");
+                    break;
+                case SymbolType::Numeric:
+                    emit(sym->name, ":");
+                    emit("    dq 0");
+
+                default: break;
+            } 
         }
     }
 
@@ -78,7 +93,7 @@ _main:
     {
         if (phase == AstVisitor::Phase::Capture) {
             pre();
-        } else {
+        } else if (phase == AstVisitor::Phase::Bubble) {
             post();
             _os.flush();
         }
@@ -88,7 +103,69 @@ _main:
     {
     }
 
-    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::Expression* node) 
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::AssignExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Capture) {
+            if (node->lhs()->type() == AstType::NewExpression) {
+                debug("assign for NewExpression not impl");
+            } else if (node->lhs()->type() == AstType::CallExpression) {
+                debug("assign for CallExpression not impl");
+            }
+        }
+
+        if (phase == AstVisitor::Phase::Bubble) {
+            if (node->lhs()->type() == AstType::Identifier) {
+                auto* id = dynamic_cast<ast::Identifier*>(node->lhs().get());
+                auto& env = *Environment::current();
+                auto sym = env.get("_" + id->token().sval);
+                assert(sym);
+                emit("mov qword [" + sym->name + "], r10");
+            }
+        }
+    }
+
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::BinaryExpression* node)
+    {
+        if (phase == AstVisitor::Phase::Step) {
+            emit("push", "r10");
+        } else if (phase == AstVisitor::Phase::Bubble) {
+            emit("pop", "r11"); // load lhs
+            switch (node->op().type) {
+                case TokenType::PLUS:
+                    emit("add r10, r11"); break;
+                case TokenType::MINUS:
+                    emit("sub r11, r10"); 
+                    emit("mov r10, r11");
+                    break;
+                case TokenType::MUL:
+                    emit("imul r10, r11"); break;
+                case TokenType::DIV:
+                    emit("push rdx");
+                    emit("push rax");
+                    emit("xor rdx, rdx"); // clear high bits, not used now
+                    emit("mov rax, r11");
+                    emit("idiv r10");
+                    emit("mov r10, rax");
+                    emit("pop rax");
+                    emit("pop rdx");
+                    break;
+                case TokenType::Comma:
+                    //nothing, return rhs value as in r10
+                    break;
+                default: break;
+            }
+        }
+    }
+
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::UnaryExpression* node)
+    {
+    }
+
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::PostfixExpression* node)
+    {
+    }
+
+    void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::NewExpression* node)
     {
     }
 
@@ -99,7 +176,7 @@ _main:
             auto* obj = dynamic_cast<ast::MemberExpression*>(node->callee().get());
             auto func = obj->object();
             ast::Identifier* id = dynamic_cast<ast::Identifier*>(func.get());
-            auto psym = Environment::current()->get(id->token().sval);
+            auto psym = Environment::current()->get("_"+id->token().sval);
             _os << "call _" << psym->name << endl;
         }
     }
@@ -131,8 +208,8 @@ _main:
                 auto* id = dynamic_cast<ast::Literal*>(ptr.get());
                 if (id->type() == ast::AstType::StringLiteral) {
                     string label = id->symbol()->name;
-                    _os << "mov r10, " << label << endl;
-                    _os << "mov " << reqs[nr_arg] << ", r10" << endl;
+                    emit("mov r10,", label);
+                    emit("mov", reqs[nr_arg],", r10");
                 }
             } 
             nr_arg++;
@@ -145,7 +222,8 @@ _main:
 
     void NasmEmitterVisitor::visit(AstVisitor::Phase phase, ast::Literal* node) 
     {
-
+        if (node->token().type == TokenType::NumericLiteral) {
+            emit("mov r10,", node->token().sval);
+        }
     }
-
 };

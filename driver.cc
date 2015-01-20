@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     sg.setBackend(new MachBackend);
 
     sg.addCompilationUnit(argv[1]);
-    //sg.start();
+    sg.start();
 
     return 0;
 }

@@ -28,7 +28,7 @@ namespace cjs
     {
         if (phase == AstVisitor::Phase::Capture) {
             Environment& global = *Environment::top();
-            global.add("puts", SymbolType::External, nullptr);
+            global.add("_puts", SymbolType::Function, SymbolScope::External, nullptr);
         }
     }
 
@@ -38,10 +38,26 @@ namespace cjs
 
     void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::AssignExpression* node)
     {
+        if (phase == AstVisitor::Phase::Capture) {
+            if (node->lhs()->type() == ast::AstType::Identifier) {
+                auto* id = dynamic_cast<ast::Identifier*>(node->lhs().get());
+                // use top because we have no var declartion now
+                // every var goes to global env
+                auto& env = *Environment::top();
+                string name {"_" + id->token().sval};
+                if (env.get(name)) {
+                    return;
+                }
+                //FIXME: need to do type inference bottom up 
+                env.add(name, SymbolType::Numeric, SymbolScope::Global, (void*)0);
+            }
+        }
     }
 
     void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::BinaryExpression* node)
     {
+        if (phase == AstVisitor::Phase::Capture) {
+        }
     }
 
     void TypeCheckVisitor::visit(AstVisitor::Phase phase, ast::UnaryExpression* node)
@@ -94,11 +110,11 @@ namespace cjs
             case ast::AstType::StringLiteral: 
             {
                 string label = "LC" + to_string(next++);
-                debug("define local label (%) for (%)", label, node->token().sval);
+                debug("define global label (%) for (%)", label, node->token().sval);
 
                 // string literal should reside in top env now
                 Environment& top = *Environment::top();
-                top.add(label, SymbolType::StringLabel, new Token(node->token()));
+                top.add(label, SymbolType::StringLabel, SymbolScope::Global, new string(node->token().sval));
                 node->annotate(label);
                 break;
             }

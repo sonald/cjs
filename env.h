@@ -29,19 +29,34 @@ namespace cjs
     using namespace std;
     using TokenType = Token::TokenType;
 
-    enum class SymbolType {
-        External,
+    enum class SymbolType 
+    {
+        Function,
+        Ref,
         StringLabel,
+        Undefined,
+        Numeric,
+        String,
+        Object,
     };
 
-    struct Symbol {
+    enum class SymbolScope 
+    {
+        Global,
+        Functional,
+        External // for testing, js does have nothing like this
+    };
+
+    struct Symbol 
+    {
         SymbolType type;
+        SymbolScope scope;
         string name;
         //FIXME: ugly
         void* val; // should be cast according to type
 
-        Symbol(SymbolType st, string name, void* v)
-            :type{st}, name{name}, val{v} 
+        Symbol(SymbolType st, SymbolScope sp, string name, void* v)
+            :type{st}, scope{sp}, name{name}, val{v} 
         {}
     };
 
@@ -55,7 +70,7 @@ namespace cjs
             static Environment* current();
 
             Environment(Environment* parent = nullptr);
-            void add(string symbol, SymbolType st, void* val);
+            void add(string symbol, SymbolType st, SymbolScope scope, void* val);
             SymbolPtr get(string symbol);
             const unordered_map<string, SymbolPtr>& symbols() const
             {

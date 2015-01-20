@@ -86,6 +86,11 @@ namespace cjs
 
     void ReprVisitor::visit(AstVisitor::Phase phase, ast::CallExpression* node)
     {
+        if (phase == AstVisitor::Phase::Capture) {
+            _repr += "(";
+        } else if (phase == AstVisitor::Phase::Bubble) {
+            _repr += ")";
+        }
     }
 
     void ReprVisitor::visit(AstVisitor::Phase phase, ast::MemberExpression* node)
